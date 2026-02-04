@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>three.js css3d - periodic table</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+		<style>
+			a {
+				color: #8ff;
+			}
+
+			#menu {
+				position: absolute;
+				bottom: 20px;
+				width: 100%;
+				text-align: center;
+			}
+
+			.element {
+				position: relative;
+				width: 140px;
+				height: 180px;
+				box-shadow: 0px 0px 12px rgba(0,255,255,0.5);
+				border: 1px solid rgba(127,255,255,0.25);
+				font-family: Helvetica, sans-serif;
+				text-align: center;
+				cursor: default;
+				background: rgba(0,127,127,0.4);
+			}
+
+			.element:hover {
+				box-shadow: 0px 0px 15px rgba(0,255,255,0.9);
+				border: 1px solid rgba(127,255,255,0.75);
+			}
+
+			/* COUNTRY (TOP-LEFT) */
+			.element .country {
+				position: absolute;
+				top: 10px;
+				left: 10px;
+				font-size: 12px;
+				color: rgba(127,255,255,0.9);
+			}
+
+			/* AGE (TOP-RIGHT) */
+			.element .age {
+				position: absolute;
+				top: 10px;
+				right: 10px;
+				font-size: 12px;
+				color: rgba(127,255,255,0.9);
+			}
+
+			/* IMAGE */
+			.element .photo {
+				margin-top: 30px;
+			}
+
+			.element .photo img {
+				width: 60px;
+				height: 60px;
+				border-radius: 50%;
+				object-fit: cover;
+				border: 2px solid rgba(0,255,255,0.6);
+			}
+
+			/* NAME (CENTER) */
+			.element .symbol {
+				margin-top: 8px;
+				font-size: 18px;
+				font-weight: bold;
+				color: rgba(255,255,255,0.85);
+				text-shadow: 0 0 6px rgba(0,255,255,0.8);
+			}
+
+			/* INTEREST (BOTTOM) */
+			.element .details {
+				position: absolute;
+				bottom: 12px;
+				left: 0;
+				right: 0;
+				font-size: 12px;
+				color: rgba(127,255,255,0.85);
+				padding: 0 5px;
+			}
+
+			button {
+				color: rgba(127,255,255,0.75);
+				background: transparent;
+				outline: 1px solid rgba(127,255,255,0.75);
+				border: 0;
+				padding: 6px 12px;
+				cursor: pointer;
+				margin: 0 5px;
+			}
+
+			button:hover {
+				background-color: rgba(0,255,255,0.4);
+			}
+
+			button:active {
+				color: #000;
+				background-color: rgba(0,255,255,0.8);
+			}
+		</style>
+
+	</head>
+	<body>
+
+		<div id="info"><a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> css3d - periodic table.</div>
+		<div id="container"></div>
+		<div id="menu">
+			<button id="table">TABLE</button>
+			<button id="sphere">SPHERE</button>
+			<button id="helix">HELIX</button>
+			<button id="grid">GRID</button>
+		</div>
+
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
+				}
+			}
+		</script>
+
+		<script type="module">
+
+			import * as THREE from 'three';
+
+			import TWEEN from 'three/addons/libs/tween.module.js';
+			import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
+			import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+
+			const table = [
+				// 2-21
+				'25','CN','https://static.kasatria.com/pivot-img/photo/019.jpg','Lee Siew Suan','Writing',1,1,251260.8,
+				'23','CN','https://static.kasatria.com/pivot-img/photo/020.jpg','New Yee Chian','Cooking',2,1,60393.6,
+				'30','CN','https://static.kasatria.com/pivot-img/photo/021.jpg','Wong Thiam Fook','Traveling',3,1,212140.8,
+				'30','MY','https://static.kasatria.com/pivot-img/photo/022.jpg','Norsuzilawati Mohd Noor','Painting',4,1,208228.8,
+				'30','MY','https://static.kasatria.com/pivot-img/photo/022.jpg','Norzainah Omar','Hiking',5,1,106555.2,
+				'31','IN','https://static.kasatria.com/pivot-img/photo/023.jpg','Meghandran Nathy','Cooking',6,1,139080.0,
+				'35','IN','https://static.kasatria.com/pivot-img/photo/025.jpg','Joyshree Goswami','Painting',7,1,192278.4,
+				'27','IN','https://static.kasatria.com/pivot-img/photo/026.jpg','Geetha Maniam','Cooking',8,1,90864.0,
+				'30','MY','https://static.kasatria.com/pivot-img/photo/027.jpg','Abdul Rahim Osman','Cooking',9,1,141859.2,
+				'44','IN','https://static.kasatria.com/pivot-img/photo/028.jpg','Prem Anand Raj','Gardening',10,1,196113.6,
+				'34','IN','https://static.kasatria.com/pivot-img/photo/029.jpg','Piara Singh Sarwan Singh','Writing',11,1,207960.0,
+				'53','MY','https://static.kasatria.com/pivot-img/photo/030.jpg','Othman b Abdul Rahman','Gardening',12,1,193200.0,
+				'59','IN','https://static.kasatria.com/pivot-img/photo/031.jpg','Sathiaseelan Paul Thurai','Gardening',13,1,264456.0,
+				'36','MY','https://static.kasatria.com/pivot-img/photo/MY0014.jpg','Abdul Farid Alias','Writing',14,1,146592.0,
+				'43','MY','https://static.kasatria.com/pivot-img/photo/MY0010.jpg','Abu Hassan Assari Ibrahim','Gardening',15,1,213657.6,
+				'31','MY','https://static.kasatria.com/pivot-img/photo/MY_003.jpg','Faridah Ahmad Iskandar','Writing',16,1,271516.8,
+				'35','MY','https://static.kasatria.com/pivot-img/photo/MY0009.jpg','Muzaffar Hisham','Cooking',17,1,230980.8,
+				'49','US','https://static.kasatria.com/pivot-img/photo/CA0088.jpg','Isaac Cardinal','Gardening',18,1,259252.8,
+				'29','IN','https://static.kasatria.com/pivot-img/photo/IND_021.jpg','Isaac Cardinal','Writing',19,1,271670.4,
+				'41','MY','https://static.kasatria.com/pivot-img/photo/MY0012.jpg','Taswin Zakaria','Gardening',20,1,243840.0,
+
+
+				//22-41
+				'35','US','https://static.kasatria.com/pivot-img/photo/039.jpg','Crystal Carter','Cooking',1,2,211550.4,
+				'36','CN','https://static.kasatria.com/pivot-img/photo/040.jpg','Vivian Grapentine','Writing',2,2,149361.6,
+				'35','US','https://static.kasatria.com/pivot-img/photo/041.jpg','Joey De Leion','Hiking',3,2,60974.4,
+				'30','US','https://static.kasatria.com/pivot-img/photo/042.jpg','Mark Feehily','Cooking',4,2,125496.0,
+				'25','CN','https://static.kasatria.com/pivot-img/photo/114.jpg','Cheong Choong Kong','Painting',5,2,111412.8,
+				'31','CN','https://static.kasatria.com/pivot-img/photo/115.jpg','George Lee Lap Wah','Painting',6,2,146174.4,
+				'28','CN','https://static.kasatria.com/pivot-img/photo/116.jpg','Yong Mei Theng','Writing',7,2,187896.0,
+				'24','CN','https://static.kasatria.com/pivot-img/photo/117.jpg','Tang Zhee Kim','Painting',8,2,264355.2,
+				'25','CN','https://static.kasatria.com/pivot-img/photo/118.jpg','Tan Miaw Wei','Cooking',9,2,101841.6,
+				'18','CN','https://static.kasatria.com/pivot-img/photo/119.jpg','Cheng Ming Soon','Traveling',10,2,210835.2,
+				'25','CN','https://static.kasatria.com/pivot-img/photo/120.jpg','Lee Fong Fong','Painting',11,2,193017.6,
+				'29','MY','https://static.kasatria.com/pivot-img/photo/121.jpg','Amir Amran Karim','Cooking',12,2,147600.0,
+				'25','IN','https://static.kasatria.com/pivot-img/photo/122.jpg','Krishnan CK Menon','Cooking',13,2,207355.2,
+				'32','IN','https://static.kasatria.com/pivot-img/photo/IND_041.jpg','Aishwarya Rai','Hiking',14,2,186398.4,
+				'36','IN','https://static.kasatria.com/pivot-img/photo/124.jpg','Simone Kumar Gopalan','Hiking',15,2,327057.6,
+				'27','MY','https://static.kasatria.com/pivot-img/photo/125.jpg','Maimoonah Hussain','Cooking',16,2,181228.8,
+				'30','IN','https://static.kasatria.com/pivot-img/photo/126.jpg','Chanda Kochar','Hiking',17,2,133228.8,
+				'20','IN','https://static.kasatria.com/pivot-img/photo/127.jpg','Shyamala Gopinath','Traveling',18,2,267230.4,
+				'35','IN','https://static.kasatria.com/pivot-img/photo/128.jpg','Suren Zedek','Writing',19,2,89764.8,
+				'35','IN','https://static.kasatria.com/pivot-img/photo/129.jpg','Danial Kuilan','Writing',20,2,246686.4,
+
+
+
+
+				//42-61
+			    '19','IN','https://static.kasatria.com/pivot-img/photo/130.jpg','Levi Asher Anamalai','Traveling',1,3,170260.8,
+				'52','US','https://static.kasatria.com/pivot-img/photo/131.jpg','Tristan Martin','Gardening',2,3,181555.2,
+				'55','US','https://static.kasatria.com/pivot-img/photo/CA0294.jpg','David Conner','Gardening',3,3,282019.2,
+				'43','US','https://static.kasatria.com/pivot-img/photo/CA0285.jpg','Kerry Jen Katona','Gardening',4,3,250579.2,
+				'55','US','https://static.kasatria.com/pivot-img/photo/134.jpg','Gilbert Kohnke','Gardening',5,3,344318.4,
+				'52','US','https://static.kasatria.com/pivot-img/photo/135.jpg','Spencer Murray','Gardening',6,3,240638.4,
+				'24','MY','https://static.kasatria.com/pivot-img/photo/136.jpg','Yaacob Mohd Zain','Hiking',7,3,205372.8,
+				'28','MY','https://static.kasatria.com/pivot-img/photo/137.jpg','Hatini Mat Husin','Hiking',8,3,350774.4,
+				'28','MY','https://static.kasatria.com/pivot-img/photo/138.jpg','Ariffin Alias','Writing',9,3,241670.40 ,
+				'42','MY','https://static.kasatria.com/pivot-img/photo/139.jpg','Abdul Malik A Rahman','Gardening',10,3,197779.20 ,
+				'30','MY','https://static.kasatria.com/pivot-img/photo/140.jpg','Samad Mahid Zain','Hiking',11,3,245827.20,
+				'34','MY','https://static.kasatria.com/pivot-img/photo/141.jpg','Johan Hashim','Cooking',12,3,184915.20,
+				'28','MY','https://static.kasatria.com/pivot-img/photo/142.jpg','Samsiah Zainal','Painting',13,3,259180.80,
+				'27','CN','https://static.kasatria.com/pivot-img/photo/009.jpg','Tay Eng Yaw','Cooking',14,3,188457.60 ,
+				'22','CN','https://static.kasatria.com/pivot-img/photo/010.jpg','Cynthiea Hong Pei Min','Painting',15,3,164865.60 ,
+				'40','CN','https://static.kasatria.com/pivot-img/photo/011.jpg','Lim Yong Siang','Gardening',16,3,347481.60 ,
+				'38','MY','https://static.kasatria.com/pivot-img/photo/018.jpg','Mohd Azam Mohd Bakar','Cooking',17,3,166795.20,
+				'43','IN','https://static.kasatria.com/pivot-img/photo/043.jpg','Jagathesan Shanmugam','Gardening',18,3,97075.20,
+				'35','IN','https://static.kasatria.com/pivot-img/photo/044.jpg','Christiana Tharsis','Hiking',19,3,243014.4,
+				'46','IN','https://static.kasatria.com/pivot-img/photo/045.jpg','Amutha Rakwan','Gardening',20,3,100396.8,
+
+
+				//62-81
+				'34','MY','https://static.kasatria.com/pivot-img/photo/046.jpg','Wan Rosmawati Wan Ibrahim','Cooking',1,4,191616.0,
+				'29','MY','https://static.kasatria.com/pivot-img/photo/047.jpg','Khatimah Mahadi','Painting',2,4,265171.2,
+				'32','MY','https://static.kasatria.com/pivot-img/photo/048.jpg','Nor Rozita Nordin','Painting',3,4,246158.4,
+				'32','MY','https://static.kasatria.com/pivot-img/photo/049.jpg','Abdul Aziz Man','Cooking',4,4,312158.4,
+				'19','MY','https://static.kasatria.com/pivot-img/photo/050.jpg','Nimma Safira Khalid','Traveling',5,4,258384.0,
+				'23','CN','https://static.kasatria.com/pivot-img/photo/012.jpg','Lam Swee Kim','Painting',6,4,148718.4,
+				'34','CN','https://static.kasatria.com/pivot-img/photo/013.jpg','Tai Yee Shian','Painting',7,4,195206.4,
+				'27','CN','https://static.kasatria.com/pivot-img/photo/014.jpg','Euodia Ooi','Writing',8,4,52118.4,
+				'24','CN','https://static.kasatria.com/pivot-img/photo/015.jpg','Ng Jia Nian','Cooking',9,4,340464.0,
+				'36','CN','https://static.kasatria.com/pivot-img/photo/016.jpg','Ong Tze Jun','Hiking',10,4,159739.2,
+				'21','CN','https://static.kasatria.com/pivot-img/photo/017.jpg','Brian Choong Chee Keong','Traveling',11,4,347659.2	,
+				'47','MY','https://static.kasatria.com/pivot-img/photo/086.jpg','Shaharuddin Abg Mansor','Gardening',12,4,351993.6,
+				'30','MY','https://static.kasatria.com/pivot-img/photo/087.jpg','Mohd Izani Ashari','Traveling',13,4,230179.2,
+				'26','MY','https://static.kasatria.com/pivot-img/photo/088.jpg','Roshan Thiran','Cooking',14,4,369652.8,
+				'30','MY','https://static.kasatria.com/pivot-img/photo/089.jpg','Shahazwan Harris','Painting',15,4,364948.8,
+				'36','MY','https://static.kasatria.com/pivot-img/photo/090.jpg','Saiful Dzulkifly','Painting',16,4,360115.2,
+				'47','MY','https://static.kasatria.com/pivot-img/photo/091.jpg','Jamie Haniff Ramlee','Gardening',17,4,174312.0,
+				'50','MY','https://static.kasatria.com/pivot-img/photo/092.jpg','Azim Azli','Gardening',18,4,160252.8,
+				'25','MY','https://static.kasatria.com/pivot-img/photo/093.jpg','Zaida Khalida Shaari','Cooking',19,4,163104.0,
+				'39','MY','https://static.kasatria.com/pivot-img/photo/094.jpg','Nurul Nabila Huda Che Ad','Hiking',20,4,247579.2,
+
+
+				//82-101
+				'29','MY','https://static.kasatria.com/pivot-img/photo/095.jpg','Sarimah Samad-Imran','Painting',1,5,102580.8,
+				'25','MY','https://static.kasatria.com/pivot-img/photo/096.jpg','Wan Nur Nordiyana','Cooking',2,5,264705.6,
+				'25','MY','https://static.kasatria.com/pivot-img/photo/097.jpg','Fatimah Husna','Writing',3,5,72710.4,
+				'30','MY','https://static.kasatria.com/pivot-img/photo/098.jpg','Nurshafiqah Saad','Cooking',4,5,128750.4,
+				'31','IN','https://static.kasatria.com/pivot-img/photo/IND_005.jpg','Amerjit Singh Bhag Singh','Writing',5,5,128750.4,
+				'29','MY','https://static.kasatria.com/pivot-img/photo/100.jpg','Nora Abd Manaf','Writing',6,5,168096.0,
+				'29','CN','https://static.kasatria.com/pivot-img/photo/101.jpg','Walter Michael Chan','Cooking',7,5,197083.2,
+				'32','CN','https://static.kasatria.com/pivot-img/photo/102.jpg','Teng Chean Choy','Cooking',8,5,145862.4,
+				'23','CN','https://static.kasatria.com/pivot-img/photo/103.jpg','Chua Bee Chin','Painting',9,5,159883.2	,
+				'25','IN','https://static.kasatria.com/pivot-img/photo/155.jpg','Santhanamary John','Writing',10,5,135878.4,
+				'42','MY','https://static.kasatria.com/pivot-img/photo/156.jpg','Nor Arzlin Redzwan','Gardening',11,5,66907.2,
+				'28','MY','https://static.kasatria.com/pivot-img/photo/157.jpg','Zuraidah Atan','Cooking',12,5,104649.6,
+				'29','MY','https://static.kasatria.com/pivot-img/photo/158.jpg','Shahrul Izzan Abdul Karim','Traveling',13,5,46363.2,
+				'33','MY','https://static.kasatria.com/pivot-img/photo/m_047.jpg','Putri Shireen Syed Othman','Painting',14,5,96628.8,
+				'34','MY','https://static.kasatria.com/pivot-img/photo/160.jpg','Abdul Hadzi Marzuki','Writing',15,5,117273.6,
+				'24','MY','https://static.kasatria.com/pivot-img/photo/161.jpg','Yasmin Ahmad','Painting',16,5,58833.6,
+				'29','MY','https://static.kasatria.com/pivot-img/photo/162.jpg','Halipah Binti Esa','Traveling',17,5,102676.8,
+				'37','MY','https://static.kasatria.com/pivot-img/photo/163.jpg','Habibah Abdul','Painting',18,5,210993.6,
+				'34','MY','https://static.kasatria.com/pivot-img/photo/164.jpg','Zulkarnain Ahmad','Writing',19,5,71361.6,
+				'24','MY','https://static.kasatria.com/pivot-img/photo/165.jpg','Fauziah Mohd Noor','Painting',20,5,126532.8,
+
+
+				// 102 - 121
+				'39','MY','https://static.kasatria.com/pivot-img/photo/196.jpg','Mohd Yunus Idris','Writing',1,6,143112	,
+				'21','MY','https://static.kasatria.com/pivot-img/photo/197.jpg','Ahmad Jauhari Yahya','Traveling',2,6,159422.4,
+				'34','MY','https://static.kasatria.com/pivot-img/photo/198.jpg','Saifol Bahri Mohamad Shamlan','Writing',3,6,198936.0,
+				'40','MY','https://static.kasatria.com/pivot-img/photo/199.jpg','Isham Ishak','Gardening',4,6,112598.4,
+				'34','MY','https://static.kasatria.com/pivot-img/photo/200.jpg','Mohd Hafizuddin Mansor','Hiking',5,6,99624.0,
+				'44','US','https://static.kasatria.com/pivot-img/photo/CA0292.jpg','Stuart Cardell','Gardening',6,6,44140.8,
+				'33','US','https://static.kasatria.com/pivot-img/photo/CA0237.jpg','Abigail Wellington','Painting',7,6,126201.6,
+				'33','CN','https://static.kasatria.com/pivot-img/photo/c_035.jpg','Gino Chin','Cooking',8,6,178569.6,
+				'37','CN','https://static.kasatria.com/pivot-img/photo/c_016.jpg','Meon Khor','Writing',9,6,132936	,
+				'30','CN','https://static.kasatria.com/pivot-img/photo/c_013.jpg','Lim Joo ann','Writing',10,6,183110.4,
+				'19','CN','https://static.kasatria.com/pivot-img/photo/CN_038.jpg','Yong Hai Wen','Traveling',11,6,259123.2,
+				'28','CN','https://static.kasatria.com/pivot-img/photo/CN_024.jpg','Yuki Low Mei Shan','Hiking',12,6,191016.0,
+				'36','CN','https://static.kasatria.com/pivot-img/photo/J_013.jpg','Jessica Tee Yan Lai','Hiking',13,6,152433.6,
+				'29','CN','https://static.kasatria.com/pivot-img/photo/J_003.jpg','Sam Yam','Cooking',14,6,57499.2,
+				'36','IN','https://static.kasatria.com/pivot-img/photo/IND_057.jpg','Shanker Jorrama','Writing',15,6,220142.4,
+				'21','IN','https://static.kasatria.com/pivot-img/photo/IND_010.jpg','Vick Viknes','Painting',16,6,267307.2,
+				'35','IN','https://static.kasatria.com/pivot-img/photo/IND_035.jpg','Arul Krishnan','Hiking',17,6,69883.2,
+				'28','IN','https://static.kasatria.com/pivot-img/photo/IND_014.jpg','Shamini Mohanan','Writing',18,6,363681.6,
+				'49','US','https://static.kasatria.com/pivot-img/photo/o_009.jpg','Theodore Frazer','Gardening',19,6,361166.4,
+				'43','IN','https://static.kasatria.com/pivot-img/photo/IND_028.jpg','Aju Varghese','Gardening',20,6,324686.4,
+
+
+				//122-141
+				'40','IN','https://static.kasatria.com/pivot-img/photo/IND_032.jpg','Shahrukh Khan','Gardening',1,7,287155.20,
+				'50','IN','https://static.kasatria.com/pivot-img/photo/IND_040.jpg','Prithviraj Sukumaran','Gardening',2,7,363739.20,
+				'32','US','https://static.kasatria.com/pivot-img/photo/CA0134.jpg','Sarah Miller','Painting',3,7,101832.00,
+				'29','IN','https://static.kasatria.com/pivot-img/photo/IND_016.jpg','Monali Thakur','Painting',4,7,162710.40,
+				'36','IN','https://static.kasatria.com/pivot-img/photo/IND_044.jpg','Keerubalami Ponnudi','Writing',5,7,177052.80,
+				'37','IN','https://static.kasatria.com/pivot-img/photo/i_023.jpg','Saint Sahana','Hiking',6,7,314136.00,
+				'28','MY','https://static.kasatria.com/pivot-img/photo/m_020.jpg','Munish Thabur','Hiking',7,7,171758.40,
+				'21','IN','https://static.kasatria.com/pivot-img/photo/IND_011.jpg','Yogesh Balakrishnamur','Painting',8,7,238915.20,
+				'19','IN','https://static.kasatria.com/pivot-img/photo/IND_049.jpg','Sharmilla Mogan','Traveling',9,7,173740.80,
+				'32','IN','https://static.kasatria.com/pivot-img/photo/IND_045.jpg','Janesree Gunasegern','Painting',10,7,187512.00,
+				'26','IN','https://static.kasatria.com/pivot-img/photo/i_018.jpg','Preya Nadarasa','Cooking',11,7,247233.60,
+				'24','IN','https://static.kasatria.com/pivot-img/photo/i_028.jpg','Uma Shamini','Cooking',12,7,201451.20,
+				'18','IN','https://static.kasatria.com/pivot-img/photo/IND_053.jpg','Geetha Kumar','Traveling',13,7,164433.60,
+				'38','IN','https://static.kasatria.com/pivot-img/photo/IND_031.jpg','Jeeva Rajadran','Cooking',14,7,192969.60,
+				'25','IN','https://static.kasatria.com/pivot-img/photo/IND_008.jpg','Nadaraajan Perumal','Writing',15,7,165604.80,
+				'39','IN','https://static.kasatria.com/pivot-img/photo/IND_039.jpg','Shri Gobaradhan','Writing',16,7,218740.80,
+				'44','IN','https://static.kasatria.com/pivot-img/photo/IND_034.jpg','Satees Muniady','Gardening',17,7,191673.60,
+				'33','MY','https://static.kasatria.com/pivot-img/photo/m_190.jpg','Nur Syazwani Nabilah Ibrahim','Painting',18,7,210110.40,
+				'24','IN','https://static.kasatria.com/pivot-img/photo/IND_042.jpg','Geetha Davethas','Hiking',19,7,199689.60,
+				'34','US','https://static.kasatria.com/pivot-img/photo/G_027.jpg','Pricella Ance','Cooking',20,7,141801.60,
+
+				//142-161
+				'28','IN','https://static.kasatria.com/pivot-img/photo/i_013.jpg','Kumarran Thanrayan','Cooking',1,8,128222.40,
+				'21','IN','https://static.kasatria.com/pivot-img/photo/i_002.jpg','Tineswary Pannaparon','Painting',2,8,94281.60,
+				'22','IN','https://static.kasatria.com/pivot-img/photo/IND_015.jpg','Vinothyni Anannthi','Painting',3,8,357902.40,
+				'29','IN','https://static.kasatria.com/pivot-img/photo/IND_013.jpg','Pilva Bhatia','Painting',4,8,213988.80,
+				'24','MY','https://static.kasatria.com/pivot-img/photo/m_027.jpg','Wan Nahijah Mohamad','Painting',5,8,183710.40,
+				'30','MY','https://static.kasatria.com/pivot-img/photo/m_066.jpg','Rahimi Muhamad','Writing',6,8,191452.80,
+				'19','MY','https://static.kasatria.com/pivot-img/photo/m_090.jpg','Shuhada Shahira','Traveling',7,8,258057.60,
+				'49','MY','https://static.kasatria.com/pivot-img/photo/mus_202.jpg','Yana Husin','Gardening',8,8,129523.20,
+				'28','MY','https://static.kasatria.com/pivot-img/photo/mus_163.jpg','Yusri Shafie','Hiking',9,8,166843.20,
+				'32','MY','https://static.kasatria.com/pivot-img/photo/mus_166.jpg','Nurul Shafiza Mat Isa','Painting',10,8,257068.80,
+				'27','MY','https://static.kasatria.com/pivot-img/photo/mus_194.jpg','Aidan Ohara','Hiking',11,8,260635.20,
+				'35','US','https://static.kasatria.com/pivot-img/photo/CA0128.jpg','Ella Berry','Cooking',12,8,131736.00,
+				'31','MY','https://static.kasatria.com/pivot-img/photo/mus_178.jpg','Noor Atheerah Zulkipli','Cooking',13,8,154046.40,
+				'32','MY','https://static.kasatria.com/pivot-img/photo/m_185.jpg','Ikmal Zakaria','Painting',14,8,197380.80,
+				'34','MY','https://static.kasatria.com/pivot-img/photo/p_047.jpg','Syed Azuwan Syed Helmi','Writing',15,8,163905.60,
+				'27','MY','https://static.kasatria.com/pivot-img/photo/m_187.jpg','Haziq Zamri','Painting',16,8,99048.00,
+				'29','MY','https://static.kasatria.com/pivot-img/photo/mus_056.jpg','Nor Fazila','Cooking',17,8,189384.00,
+				'28','MY','https://static.kasatria.com/pivot-img/photo/m_116.jpg','Muhd Ruzhan','Traveling',18,8,232641.60,
+				'29','MY','https://static.kasatria.com/pivot-img/photo/m_154.jpg','Azhar Masli','Writing',19,8,212256.00,
+				'40','MY','https://static.kasatria.com/pivot-img/photo/m_120.jpg','Mohd Riduan Hamin','Gardening',20,8,235483.20,
+
+
+				//162-181
+				'30','US','https://static.kasatria.com/pivot-img/photo/CA0274.jpg','Freya Rogers','Painting',1,9,240427.20,
+				'38','MY','https://static.kasatria.com/pivot-img/photo/m_181.jpg','Harris Azman','Writing',2,9,232377.60,
+				'24','MY','https://static.kasatria.com/pivot-img/photo/th_337.jpg','Muhammad Adli Azri','Painting',3,9,280248.00,
+				'29','MY','https://static.kasatria.com/pivot-img/photo/m_177.jpg','Jafri Mohd','Hiking',4,9,314107.20,
+				'30','MY','https://static.kasatria.com/pivot-img/photo/mus_019.jpg','Aten Zulkifly','Writing',5,9,237307.20,
+				'25','MY','https://static.kasatria.com/pivot-img/photo/mus_045.jpg','Eyqa Hassan','Painting',6,9,112651.20,
+				'30','MY','https://static.kasatria.com/pivot-img/photo/m_018.jpg','Muhd Yazid','Hiking',7,9,76492.80,
+				'39','MY','https://static.kasatria.com/pivot-img/photo/p_027.jpg','Muhammad Syafiq Suhaimi','Writing',8,9,341563.20,
+				'62','MY','https://static.kasatria.com/pivot-img/photo/p_014.jpg','Nashrul Amin','Gardening',9,9,154632.00,
+				'21','MY','https://static.kasatria.com/pivot-img/photo/mus_064.jpg','Nur Syahirah','Painting',10,9,148492.80,
+				'20','MY','https://static.kasatria.com/pivot-img/photo/mus_114.jpg','Syamimy Ghani','Traveling',11,9,200347.20,
+				'34','MY','https://static.kasatria.com/pivot-img/photo/p_028.jpg','Shahir Sukri','Painting',12,9,282700.80,
+				'48','MY','https://static.kasatria.com/pivot-img/photo/p_030.jpg','Amierul Miyul','Gardening',13,9,321004.80,
+				'23','MY','https://static.kasatria.com/pivot-img/photo/mus_090.jpg','Nara Sharkirra','Writing',14,9,338539.20,
+				'59','MY','https://static.kasatria.com/pivot-img/photo/p_022.jpg','Muhamad Hafiz Bob','Gardening',15,9,240312.00,
+				'48','MY','https://static.kasatria.com/pivot-img/photo/p_023.jpg','Mohd Shahril','Gardening',16,9,252984.00,
+				'23','MY','https://static.kasatria.com/pivot-img/photo/mus_091.jpg','Eyka Abdul Ghani','Traveling',17,9,233726.40,
+				'33','MY','https://static.kasatria.com/pivot-img/photo/m_167.jpg','Mohamad Khuzairy','Cooking',18,9,118766.40,
+				'20','MY','https://static.kasatria.com/pivot-img/photo/m_179.jpg','Nana Hanna','Traveling',19,9,226276.80,
+				'62','MY','https://static.kasatria.com/pivot-img/photo/p_034.jpg','Mohd Hanafi Azhar','Gardening',20,9,332568.00,
+
+				//182-201
+	'60','MY','https://static.kasatria.com/pivot-img/photo/p_045.jpg','Zenki Afra','Gardening',1,10,168600.00,
+	'48','MY','https://static.kasatria.com/pivot-img/photo/p_050.jpg','Mohamad Hairie','Gardening',2,10,300566.40,
+	'57','MY','https://static.kasatria.com/pivot-img/photo/m_168.jpg','Mohd Syafiq','Gardening',3,10,215164.80,
+	'27','MY','https://static.kasatria.com/pivot-img/photo/m_165.jpg','Muhammad Ashri','Traveling',4,10,206568.00,
+	'20','MY','https://static.kasatria.com/pivot-img/photo/mus_024.jpg','Yusni Asnida','Traveling',5,10,167016.00,
+	'19','MY','https://static.kasatria.com/pivot-img/photo/m_049.jpg','Shaheera Mohd Aniq','Traveling',6,10,248865.60,
+	'27','MY','https://static.kasatria.com/pivot-img/photo/m_103.jpg','Nursyamimi Atiqah','Cooking',7,10,288734.40,
+	'23','US','https://static.kasatria.com/pivot-img/photo/G_038.jpg','Catherine Wheeler','Hiking',8,10,53697.60,
+	'28','MY','https://static.kasatria.com/pivot-img/photo/m_110.jpg','Azizah Mahzan','Hiking',9,10,210508.80,
+	'30','MY','https://static.kasatria.com/pivot-img/photo/m_149.jpg','Mohd Azmi','Traveling',10,10,212006.40,
+	'33','US','https://static.kasatria.com/pivot-img/photo/G_035.jpg','Anastasia Morrison','Hiking',11,10,71625.60,
+	'40','MY','https://static.kasatria.com/pivot-img/photo/ph_151.jpg','Razak Muhaidin','Gardening',12,10,259934.40,
+	'45','US','https://static.kasatria.com/pivot-img/photo/o_014.jpg','Helena Tillsley','Gardening',13,10,192369.60,
+	'50','US','https://static.kasatria.com/pivot-img/photo/G_057.jpg','Ryder Fletcher','Gardening',14,10,257323.20,
+	'38','US','https://static.kasatria.com/pivot-img/photo/G_058.jpg','Sara Fessenden','Writing',15,10,145972.80,
+	'49','CN','https://static.kasatria.com/pivot-img/photo/J_011.jpg','Jeffrey Ewing','Gardening',16,10,254068.80,
+	'38','US','https://static.kasatria.com/pivot-img/photo/CA0162.jpg','Dawson Hoffman','Cooking',17,10,181804.80,
+	'36','US','https://static.kasatria.com/pivot-img/photo/G_052.jpg','Jonne Macdonald','Hiking',18,10,212760.00,
+	'52','US','https://static.kasatria.com/pivot-img/photo/CA0267.jpg','Pierre Henry','Gardening',19,10,127704.00,
+	'51','US','https://static.kasatria.com/pivot-img/photo/G_039.jpg','Collen McClintock','Gardening',20,10,261883.20,
+
+
+
+
+
+
+
+			];
+
+
+			let camera, scene, renderer;
+			let controls;
+
+			const objects = [];
+			const targets = { table: [], sphere: [], helix: [], grid: [] };
+
+			init();
+			animate();
+
+			function init() {
+
+				camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.z = 3000;
+
+				scene = new THREE.Scene();
+
+				// table
+
+				for (let i = 0; i < table.length; i += 8) {
+
+					const element = document.createElement('div');
+					element.className = 'element';
+
+					// COUNTRY (top-left)
+					const country = document.createElement('div');
+					country.className = 'country';
+					country.textContent = table[i + 1];
+					element.appendChild(country);
+
+					// AGE (top-right)
+					const age = document.createElement('div');
+					age.className = 'age';
+					age.textContent = table[i];
+					element.appendChild(age);
+
+					// IMAGE
+					const photo = document.createElement('div');
+					photo.className = 'photo';
+					const img = document.createElement('img');
+					img.src = table[i + 2]; 
+					img.alt = table[i + 3]; 
+					photo.appendChild(img);
+					element.appendChild(photo);
+
+					// NAME (center)
+					const symbol = document.createElement('div');
+					symbol.className = 'symbol';
+					symbol.textContent = table[i + 3]; 
+					element.appendChild(symbol);
+
+					// INTEREST (bottom)
+					const details = document.createElement('div');
+					details.className = 'details';
+					details.textContent = table[i + 4]; 
+					element.appendChild(details);
+
+					// Get networth
+					const networth = table[i + 7]; 
+
+					// Set background color based on networth
+					if (networth < 100000) {
+						element.style.boxShadow = '0 0 20px rgba(255,0,0,0.6)'; // Red glow
+						element.style.border = '2px solid rgba(255,0,0,0.6)';     // Red border
+					} else if (networth >= 100000 && networth < 200000) {
+						element.style.boxShadow = '0 0 20px rgba(255,165,0,0.6)'; // Orange glow
+						element.style.border = '2px solid rgba(255,165,0,0.6)';   // Orange border
+					} else {
+						element.style.boxShadow = '0 0 20px rgba(0,128,0,0.6)';   // Green glow
+						element.style.border = '2px solid rgba(0,128,0,0.6)';     // Green border
+					}
+
+
+
+					const objectCSS = new CSS3DObject(element);
+
+					objectCSS.position.x = Math.random() * 4000 - 2000;
+					objectCSS.position.y = Math.random() * 4000 - 2000;
+					objectCSS.position.z = Math.random() * 4000 - 2000;
+
+					scene.add(objectCSS);
+					objects.push(objectCSS);
+					
+
+					// TABLE position
+					const object = new THREE.Object3D();
+					object.position.x = ( table[i + 5] * 200 ) - 1330;
+					object.position.y = - ( table[i + 6] * 220 ) + 990;
+
+					targets.table.push(object);
+				}
+
+
+
+				// sphere
+
+				const vector = new THREE.Vector3();
+
+				for ( let i = 0, l = objects.length; i < l; i ++ ) {
+
+					const phi = Math.acos( - 1 + ( 2 * i ) / l );
+					const theta = Math.sqrt( l * Math.PI ) * phi;
+
+					const object = new THREE.Object3D();
+
+					object.position.setFromSphericalCoords( 800, phi, theta );
+
+					vector.copy( object.position ).multiplyScalar( 2 );
+
+					object.lookAt( vector );
+
+					targets.sphere.push( object );
+
+				}
+
+				// helix
+
+				for ( let i = 0, l = objects.length; i < l; i ++ ) {
+
+					const radius = 900;
+					const yStep = 100;
+
+					// First helix
+					const theta1 = i * 0.35;      // angle step
+					const y1 = -i * yStep;        // vertical position
+					const object1 = new THREE.Object3D();
+					object1.position.setFromCylindricalCoords(radius, theta1, y1);
+					object1.lookAt(new THREE.Vector3(0, y1, 0));
+					targets.helix.push(object1);
+
+					// Second helix (offset vertically by half-step)
+					const theta2 = theta1 + Math.PI; // 180° opposite
+					const y2 = y1 - yStep/2;         // half-step lower
+					const object2 = new THREE.Object3D();
+					object2.position.setFromCylindricalCoords(radius, theta2, y2);
+					object2.lookAt(new THREE.Vector3(0, y2, 0));
+					targets.helix.push(object2);
+
+				}
+
+				// grid
+
+				for ( let i = 0; i < objects.length; i ++ ) {
+
+					const object = new THREE.Object3D();
+
+					object.position.x = ( ( i % 5 ) * 400 ) - 800;
+					object.position.y = ( - ( Math.floor( i / 5 ) % 4 ) * 400 ) + 800;
+					object.position.z = ( Math.floor( i / 20 ) ) * 1000 - 2000;
+
+					targets.grid.push( object );
+
+				}
+
+				//
+
+				renderer = new CSS3DRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.getElementById( 'container' ).appendChild( renderer.domElement );
+
+				//
+
+				controls = new TrackballControls( camera, renderer.domElement );
+				controls.minDistance = 500;
+				controls.maxDistance = 6000;
+				controls.addEventListener( 'change', render );
+
+				const buttonTable = document.getElementById( 'table' );
+				buttonTable.addEventListener( 'click', function () {
+
+					transform( targets.table, 2000 );
+
+				} );
+
+				const buttonSphere = document.getElementById( 'sphere' );
+				buttonSphere.addEventListener( 'click', function () {
+
+					transform( targets.sphere, 2000 );
+
+				} );
+
+				const buttonHelix = document.getElementById( 'helix' );
+				buttonHelix.addEventListener( 'click', function () {
+
+					transform( targets.helix, 2000 );
+
+				} );
+
+				const buttonGrid = document.getElementById( 'grid' );
+				buttonGrid.addEventListener( 'click', function () {
+
+					transform( targets.grid, 2000 );
+
+				} );
+
+				transform( targets.table, 2000 );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize );
+
+			}
+
+			function transform( targets, duration ) {
+
+				TWEEN.removeAll();
+
+				for ( let i = 0; i < objects.length; i ++ ) {
+
+					const object = objects[ i ];
+					const target = targets[ i ];
+
+					new TWEEN.Tween( object.position )
+						.to( { x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration )
+						.easing( TWEEN.Easing.Exponential.InOut )
+						.start();
+
+					new TWEEN.Tween( object.rotation )
+						.to( { x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, Math.random() * duration + duration )
+						.easing( TWEEN.Easing.Exponential.InOut )
+						.start();
+
+				}
+
+				new TWEEN.Tween( this )
+					.to( {}, duration * 2 )
+					.onUpdate( render )
+					.start();
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				render();
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				TWEEN.update();
+
+				controls.update();
+
+			}
+
+			function render() {
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>
+
+
+
+
