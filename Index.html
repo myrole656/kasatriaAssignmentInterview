@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Google Login Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f2f2f2;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-box {
+      background: #ffffff;
+      padding: 30px 40px;
+      border-radius: 10px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .login-box h2 {
+      margin-bottom: 20px;
+    }
+
+    .user-info {
+      margin-top: 20px;
+    }
+
+    .user-info img {
+      border-radius: 50%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-box">
+    <h2>Login with Google</h2>
+
+    <!-- Google Login Button -->
+    <div id="g_id_onload"
+         data-client_id="949893538008-m9021bjaa4of2iid4uuj17bj8tdk1m9b.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse">
+    </div>
+
+    <div class="g_id_signin" data-type="standard"></div>
+
+    <div id="user" class="user-info"></div>
+  </div>
+
+ <script>
+function handleCredentialResponse(response) {
+  const userData = parseJwt(response.credential);
+
+  // Optional: store user info in localStorage if you want
+  localStorage.setItem("userName", userData.name);
+  localStorage.setItem("userEmail", userData.email);
+  localStorage.setItem("userPicture", userData.picture);
+
+  // Redirect to your periodic table page
+    window.location.href = "examples/css3d_periodictable.html";
+}
+
+// Decode JWT token
+function parseJwt(token) {
+  const base64Url = token.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  return JSON.parse(atob(base64));
+}
+</script>
+
+</body>
+</html>
